@@ -32,7 +32,7 @@ disp(loss_sum);
 
 iterations=1;
 %%%%%%%%%Performing Perceptron%%%%%%%%%%%%%%%
-while wrong_count>0
+while loss_sum>0
     for m=1:M
         if guesses(m)~= y(m)
             w(1)=w(1)+gamma*x(m,1)*y(m);
@@ -53,8 +53,18 @@ while wrong_count>0
             wrong_count=wrong_count+1;
         end
     end
-%    disp(wrong_count);
+    disp(wrong_count);
     %%%%%%%%%Proving Classification%%%%%%%%%%%%%%
+    
+    %%%%%%%%%Calculating Loss%%%%%%%%%%%%%%%%%%%%
+    loss_sum=0;
+    for m=1:M
+        loss_sum=loss_sum+max(0,-y(m)*(dot(w,x(m,:))+b));
+    end
+    fprintf("Loss Iteration: ");
+    disp(loss_sum);
+    %%%%%%%%%Calculating Loss%%%%%%%%%%%%%%%%%%%%
+    
     iterations=iterations+1;
 end
 %%%%%%%%%Performing Perceptron%%%%%%%%%%%%%%%
