@@ -1,7 +1,7 @@
 data=importdata('perceptron.data');
 x=data(:,1:4);
 y=data(:,5);
-gamma=.1;
+gamma=1/(10+.01*0);
 M=size(data);
 M=M(1);
 w=[0,0,0,0];
@@ -18,7 +18,8 @@ for m=1:M
         wrong_count=wrong_count+1;
     end
 end
-%disp(wrong_count);
+fprintf("Intital Misclassifications: ");
+disp(wrong_count);
 %%%%%%%%%Proving Classification%%%%%%%%%%%%%%
 
 %%%%%%%%%Calculating Loss%%%%%%%%%%%%%%%%%%%%
@@ -26,33 +27,43 @@ loss_sum=0;
 for m=1:M
      loss_sum=loss_sum+(max(0,1-y(m)*(dot(w,x(m,:))+b)))^2;
 end
-fprintf("Initial Loss: ");
-disp(loss_sum);
+loss=(1/M)*loss_sum;
+fprintf("Loss: ");
+disp(loss);
 %%%%%%%%%Calculating Loss%%%%%%%%%%%%%%%%%%%%
 
 
-iterations=1;
-index=0;
+iterations=0;
 %%%%%%%%%Performing Perceptron%%%%%%%%%%%%%%%
-while loss_sum>0
+while loss>0
+    grad_w_sum=0;
+    grad_b_sum=0;
     for m=1:M
-        if guesses(m)~= y(m)
-            w_old=w;
-            b_old=b;
-            w(1)=w(1)-gamma*(2*(1/M(1))*(max(0,1-y(m)*(dot(w_old,x(m,:))+b_old))))*-1*x(m,1)*y(m);
-            w(2)=w(2)-gamma*(2*(1/M(1))*(max(0,1-y(m)*(dot(w_old,x(m,:))+b_old))))*-1*x(m,2)*y(m);
-            w(3)=w(3)-gamma*(2*(1/M(1))*(max(0,1-y(m)*(dot(w_old,x(m,:))+b_old))))*-1*x(m,3)*y(m);
-            w(4)=w(4)-gamma*(2*(1/M(1))*(max(0,1-y(m)*(dot(w_old,x(m,:))+b_old))))*-1*x(m,4)*y(m);
-            b=b_old-gamma*(2*(1/M(1))*(max(0,1-y(m)*(dot(w_old,x(m,:))+b_old))))*-1*y(m);
-            iterations=iterations+1;
-        end
+         flag=max(0,1-y(m)*(dot(w,x(m,:))+b));
+         grad_w_sum=grad_w_sum+flag*(x(m,:)*y(m));
+         grad_b_sum=grad_b_sum+flag*y(m);
     end
-    if index <=3 && index >=1
-        fprintf("Iteration %i\n",index);
-        disp(w);
-        disp(b);
+    w=w-gamma*(-2/M)*grad_w_sum;
+    b=b-gamma*(-2/M)*grad_b_sum;
+    
+    if iterations <=3 && iterations >=1
+            fprintf("Iteration %i\n",iterations);
+            disp(w);
+            disp(b);
     end
-    index=index+1;
+    iterations=iterations+1;
+    gamma=1/(10+.01*iterations);
+    
+    %%%%%%%%%Calculating Loss%%%%%%%%%%%%%%%%%%%%
+    loss_sum=0;
+    for m=1:M
+        loss_sum=loss_sum+(max(0,-y(m)*(dot(w,x(m,:))+b)));
+    end
+    loss=(1/M)*loss_sum;
+    %fprintf("Loss: ");
+    %disp(loss);
+    %%%%%%%%%Calculating Loss%%%%%%%%%%%%%%%%%%%%
+    
     %%%%%%%%%Proving Classification%%%%%%%%%%%%%%
     guesses=zeros(999,1);
     for m=1:M
@@ -64,18 +75,10 @@ while loss_sum>0
             wrong_count=wrong_count+1;
         end
     end
-    fprintf("Misclassified Count: ");
-    disp(wrong_count);
+    %fprintf("Misclassifications: ");
+    %disp(wrong_count);
     %%%%%%%%%Proving Classification%%%%%%%%%%%%%%
-    
-    %%%%%%%%%Calculating Standard Loss%%%%%%%%%%%
-    loss_sum=0;
-    for m=1:M
-        loss_sum=loss_sum+max(0,-y(m)*(dot(w,x(m,:))+b));
-    end
-    fprintf("Loss: ");
-    disp(loss_sum);
-    %%%%%%%%%Calculating Standard Loss%%%%%%%%%%%
+ 
 end
 %%%%%%%%%Performing Perceptron%%%%%%%%%%%%%%%
 fprintf("Performance: \n");
@@ -89,10 +92,11 @@ disp(b);
 %%%%%%%%%Calculating Loss%%%%%%%%%%%%%%%%%%%%
 loss_sum=0;
 for m=1:M
-     loss_sum=loss_sum+(max(0,-y(m)*(dot(w,x(m,:))+b)))^2;
+     loss_sum=loss_sum+(max(0,-y(m)*(dot(w,x(m,:))+b)));
 end
+loss=(1/M)*loss_sum;
 fprintf("Loss: ");
-disp(loss_sum);
+disp(loss);
 %%%%%%%%%Calculating Loss%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%Proving Correct Classification%%%%%%
@@ -100,6 +104,16 @@ guesses=zeros(999,1);
 for m=1:M
     guesses(m)=sign(dot(w,x(m,:))+b);
 end
+
+wrong_count=0;
+for m=1:M
+    if guesses(m)~=y(m)
+        wrong_count=wrong_count+1;
+    end
+end
+fprintf("End Misclassified Count: ");
+disp(wrong_count);
+
 for m=1:M
     fprintf("%d,%d,%d,%d,%d\n",x(m,:),guesses(m));
 end
