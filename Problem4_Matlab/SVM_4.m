@@ -3,32 +3,51 @@ x=data(:,1:4);
 y=data(:,5);
 M=size(data);
 M=M(1);
-C=2^32;
-%Square Fitting
-%x1,x2,x3,x4,x12,x22,x32,x42
-w=[0,0,0,0,0,0,0,0];
-b=0;
-psi=zeros(999,8);
+N=18;
+w=zeros(1,N);
+b=zeros(1,1);
+phi=zeros(M,N-1);
+guesses=zeros(M,1);
 for m=1:M
-    psi(m,1)=x(m,1);
-    psi(m,2)=x(m,2);
-    psi(m,3)=x(m,3);
-    psi(m,4)=x(m,4);
-    psi(m,5)=x(m,1)^2;
-    psi(m,6)=x(m,2)^2;
-    psi(m,7)=x(m,3)^2;
-    psi(m,8)=x(m,4)^2;
+   phi(m,1)=x(m,1)*x(m,1)*x(m,1);
+   phi(m,2)=x(m,1)*x(m,1)*x(m,2);
+   phi(m,3)=x(m,1)*x(m,1)*x(m,3);
+   phi(m,4)=x(m,1)*x(m,1)*x(m,4);
+   phi(m,5)=x(m,2)*x(m,2)*x(m,1);
+   phi(m,6)=x(m,2)*x(m,2)*x(m,2);
+   phi(m,7)=x(m,2)*x(m,2)*x(m,3);
+   phi(m,8)=x(m,2)*x(m,2)*x(m,4);
+   phi(m,9)=x(m,3)*x(m,3)*x(m,1);
+   phi(m,10)=x(m,3)*x(m,3)*x(m,2);
+   phi(m,11)=x(m,3)*x(m,3)*x(m,3);
+   phi(m,12)=x(m,3)*x(m,3)*x(m,4);
+   phi(m,13)=x(m,4)*x(m,4)*x(m,1);
+   phi(m,14)=x(m,4)*x(m,4)*x(m,2);
+   phi(m,15)=x(m,4)*x(m,4)*x(m,3);
+   phi(m,16)=x(m,4)*x(m,4)*x(m,4);
+   phi(m,17)=x(m,1)*x(m,2)*x(m,3);
+   %phi(m,18)=x(m,1)*x(m,2)*x(m,4);
+   %phi(m,19)=x(m,2)*x(m,3)*x(m,4);
+   %phi(m,20)=x(m,2)*x(m,3)*x(m,1);
 end
 
-loss_sum=0;
+front=ones(M,1);
+phi=[front,phi];
+q_x=[b,w];
+q_A=-1*(y.*phi);
+q_H=eye(N);
+q_H(1,1)=0;
+q_b=-1*ones(M,1);
+q_f=zeros(1,N);
+q_w=quadprog(q_H,q_f,q_A,q_b);
+
+wrong_count =0;
 for m=1:M
-    loss_sum=loss_sum+y(m)*max(0,1+y(m)*(dot(w,psi(m,:))+b))+(1-y(m))*max(0,1-y(m)*(dot(w,psi(m,:))+b));
+    %We test the linear separator for perfection
+    guesses(m)=sign(dot(q_w,phi(m,:))+b);
+    if guesses(m)~=y(m)
+        disp(x(m,:));
+        wrong_count=wrong_count+1;
+    end
 end
-loss=C*loss_sum;
-%while loss>0
-    
-%end
-guesses=zeros(999,1);
-for m=1:M
-    guesses(m)=sign(dot(w,psi(m,:))+b);
-end
+disp(wrong_count);
