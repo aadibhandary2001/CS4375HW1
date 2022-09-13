@@ -41,13 +41,28 @@ q_b=-1*ones(M,1);
 q_f=zeros(1,N);
 q_w=quadprog(q_H,q_f,q_A,q_b);
 
-wrong_count =0;
+vals=zeros(M,1);
+fprintf("Suport Vectors: \n");
+wrong_count=0;
 for m=1:M
+    vals(m)=y(m)*(dot(q_w,phi(m,:))+b);
+    if (vals(m)<=1.0001)&&(vals(m)>=0.9999)
+        fprintf("m: %i, val: %i",m,vals(m));
+        disp(x(m,:));
+    end
     %We test the linear separator for perfection
     guesses(m)=sign(dot(q_w,phi(m,:))+b);
     if guesses(m)~=y(m)
+        fprintf("Imperfect: ")
         disp(x(m,:));
         wrong_count=wrong_count+1;
+        break;
     end
 end
+fprintf("Final Misclassifications: ");
 disp(wrong_count);
+op_margin=1/norm(q_w);
+fprintf("Optimal Margin: ");
+disp(op_margin);
+fprintf("Learned W: \n");
+disp(q_w);
